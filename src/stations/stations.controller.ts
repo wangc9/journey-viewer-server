@@ -7,15 +7,50 @@ export class StationsController {
 
   @Get()
   async findAllStations(
-    @Query('skip') skip: number,
-    @Query('take') take: number,
+    @Query('skip') skip: string,
+    @Query('take') take: string,
   ) {
-    return await this.stationService.getAllStations(skip, take);
+    if (!/^[0-9]+$/.test(skip)) {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Skip must be a number',
+        code: 'INVALID_SKIP',
+        timestamp: new Date().toUTCString(),
+        path: '/stations',
+      };
+    }
+    if (!/^[0-9]+$/.test(take)) {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Take must be a number',
+        code: 'INVALID_TAKE',
+        timestamp: new Date().toUTCString(),
+        path: '/stations',
+      };
+    }
+    const stations = await this.stationService.getAllStations(
+      Number(skip),
+      Number(take),
+    );
+    if (stations) {
+      return stations;
+    } else {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'No station found',
+        code: 'NO_STATION',
+        timestamp: new Date().toUTCString(),
+        path: '/stations',
+      };
+    }
   }
 
   @Get('/:id')
-  async findSingleStation(@Param('id') id: number) {
-    if (typeof id === 'string') {
+  async findSingleStation(@Param('id') id: string) {
+    if (!/^[0-9]+$/.test(id)) {
       return {
         status: 400,
         error: 'Bad Request',
@@ -25,7 +60,7 @@ export class StationsController {
         path: '/stations/:id',
       };
     }
-    const station = await this.stationService.getSingleStation(id);
+    const station = await this.stationService.getSingleStation(Number(id));
     if (station) {
       return station;
     } else {

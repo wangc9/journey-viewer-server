@@ -9,6 +9,10 @@ export class JourneysController {
   async findAllJourneys(
     @Query('skip') skip: string,
     @Query('take') take: string,
+    @Query('id') id: string,
+    @Query('dTime') dTime: string,
+    @Query('rTime') rTime: string,
+    @Query('search') search: string,
   ) {
     if (!/^[0-9]+$/.test(skip)) {
       return {
@@ -30,10 +34,46 @@ export class JourneysController {
         path: '/journeys',
       };
     }
+    if (id !== undefined && id !== 'ASC' && id !== 'DESC') {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Id order can be only ASC or DESC',
+        code: 'INVALID_ID_ORDER',
+        timestamp: new Date().toUTCString(),
+        path: '/journeys',
+      };
+    }
+    if (dTime !== undefined && dTime !== 'ASC' && dTime !== 'DESC') {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'dTime order can be only ASC or DESC',
+        code: 'INVALID_DTIME_ORDER',
+        timestamp: new Date().toUTCString(),
+        path: '/journeys',
+      };
+    }
+    if (rTime !== undefined && rTime !== 'ASC' && rTime !== 'DESC') {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'rTime order can be only ASC or DESC',
+        code: 'INVALID_RTIME_ORDER',
+        timestamp: new Date().toUTCString(),
+        path: '/journeys',
+      };
+    }
+
     const journeys = await this.journeyService.getAllJourneys(
       Number(skip),
       Number(take),
+      id,
+      dTime,
+      rTime,
+      search,
     );
+
     if (journeys) {
       return journeys;
     } else {

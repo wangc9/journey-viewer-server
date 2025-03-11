@@ -10,8 +10,31 @@ export class JourneyService {
     private journeyRepository: Repository<Journey>,
   ) {}
 
-  async getAllJourneys(skip: number, take: number): Promise<Journey[] | null> {
-    return await this.journeyRepository.find({ skip: skip * take, take });
+  async getAllJourneys(
+    skip: number,
+    take: number,
+    id = 'ASC',
+    dTime = 'ASC',
+    rTime = 'ASC',
+    search?: string,
+  ): Promise<Journey[] | null> {
+    return await this.journeyRepository.find({
+      skip: skip * take,
+      take,
+      order: {
+        id: id === 'ASC' ? 'ASC' : 'DESC',
+        departureDateTime: dTime === 'ASC' ? 'ASC' : 'DESC',
+        returnDateTime: rTime === 'ASC' ? 'ASC' : 'DESC',
+      },
+      relations: ['departureStationId', 'returnStationId'],
+      where: search
+        ? [
+            ...(/^[0-9]+$/.test(search) ? [{ id: Number(search) }] : []),
+            { departureDateTime: new Date(search) },
+            { returnDateTime: new Date(search) },
+          ]
+        : [],
+    });
   }
 
   async getSingleJourney(id: number): Promise<Journey | null> {

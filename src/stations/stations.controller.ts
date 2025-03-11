@@ -14,6 +14,7 @@ export class StationsController {
     @Query('address') address: string,
     @Query('x') x: string,
     @Query('y') y: string,
+    @Query('search') search: string,
   ) {
     if (!/^[0-9]+$/.test(skip)) {
       return {
@@ -94,6 +95,7 @@ export class StationsController {
       address,
       x,
       y,
+      search,
     );
 
     if (stations) {

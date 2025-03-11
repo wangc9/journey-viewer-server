@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Station } from './stations.entity';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 
 @Injectable()
 export class StationService {
@@ -18,6 +18,7 @@ export class StationService {
     address = 'ASC',
     x = 'ASC',
     y = 'ASC',
+    search?: string,
   ): Promise<Station[] | null> {
     return await this.stationRepository.find({
       skip: skip * take,
@@ -29,6 +30,15 @@ export class StationService {
         coordinateX: x === 'ASC' ? 'ASC' : 'DESC',
         coordinateY: y === 'ASC' ? 'ASC' : 'DESC',
       },
+      where: search
+        ? [
+            ...(/^[0-9]+$/.test(search) ? [{ id: Number(search) }] : []),
+            { stationName: Like(`%${search}%`) },
+            { stationAddress: Like(`%${search}%`) },
+            { coordinateX: Like(`%${search}%`) },
+            { coordinateY: Like(`%${search}%`) },
+          ]
+        : [],
     });
   }
 

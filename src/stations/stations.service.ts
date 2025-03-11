@@ -10,7 +10,11 @@ export class StationService {
     private stationRepository: Repository<Station>,
   ) {}
 
-  getAllStations(skip: number, take: number): Promise<Station[]> {
-    return this.stationRepository.find({ skip: skip * take, take });
+  async getAllStations(skip: number, take: number): Promise<Station[] | null> {
+    return await this.stationRepository.find({ skip: skip * take, take });
+  }
+
+  async getSingleStation(id: number): Promise<Station | null> {
+    return await this.stationRepository.findOne({ where: { id } });
   }
 }

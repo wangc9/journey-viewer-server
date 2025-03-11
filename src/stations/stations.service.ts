@@ -10,8 +10,26 @@ export class StationService {
     private stationRepository: Repository<Station>,
   ) {}
 
-  async getAllStations(skip: number, take: number): Promise<Station[] | null> {
-    return await this.stationRepository.find({ skip: skip * take, take });
+  async getAllStations(
+    skip: number,
+    take: number,
+    id = 'ASC',
+    name = 'ASC',
+    address = 'ASC',
+    x = 'ASC',
+    y = 'ASC',
+  ): Promise<Station[] | null> {
+    return await this.stationRepository.find({
+      skip: skip * take,
+      take,
+      order: {
+        id: id === 'ASC' ? 'ASC' : 'DESC',
+        stationName: name === 'ASC' ? 'ASC' : 'DESC',
+        stationAddress: address === 'ASC' ? 'ASC' : 'DESC',
+        coordinateX: x === 'ASC' ? 'ASC' : 'DESC',
+        coordinateY: y === 'ASC' ? 'ASC' : 'DESC',
+      },
+    });
   }
 
   async getSingleStation(id: number): Promise<{

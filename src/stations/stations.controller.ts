@@ -9,6 +9,11 @@ export class StationsController {
   async findAllStations(
     @Query('skip') skip: string,
     @Query('take') take: string,
+    @Query('id') id: string,
+    @Query('name') name: string,
+    @Query('address') address: string,
+    @Query('x') x: string,
+    @Query('y') y: string,
   ) {
     if (!/^[0-9]+$/.test(skip)) {
       return {
@@ -30,10 +35,67 @@ export class StationsController {
         path: '/stations',
       };
     }
+    if (id !== undefined && id !== 'ASC' && id !== 'DESC') {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Id order can be only ASC or DESC',
+        code: 'INVALID_ID_ORDER',
+        timestamp: new Date().toUTCString(),
+        path: '/stations',
+      };
+    }
+    if (name !== undefined && name !== 'ASC' && name !== 'DESC') {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Name order can be only ASC or DESC',
+        code: 'INVALID_NAME_ORDER',
+        timestamp: new Date().toUTCString(),
+        path: '/stations',
+      };
+    }
+    if (address !== undefined && address !== 'ASC' && address !== 'DESC') {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Address order can be only ASC or DESC',
+        code: 'INVALID_ADDRESS_ORDER',
+        timestamp: new Date().toUTCString(),
+        path: '/stations',
+      };
+    }
+    if (x !== undefined && x !== 'ASC' && x !== 'DESC') {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'X order can be only ASC or DESC',
+        code: 'INVALID_X_ORDER',
+        timestamp: new Date().toUTCString(),
+        path: '/stations',
+      };
+    }
+    if (y !== undefined && y !== 'ASC' && y !== 'DESC') {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Y order can be only ASC or DESC',
+        code: 'INVALID_Y_ORDER',
+        timestamp: new Date().toUTCString(),
+        path: '/stations',
+      };
+    }
+
     const stations = await this.stationService.getAllStations(
       Number(skip),
       Number(take),
+      id,
+      name,
+      address,
+      x,
+      y,
     );
+
     if (stations) {
       return stations;
     } else {

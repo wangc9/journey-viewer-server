@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { StationsModule } from './stations/stations.module';
+import { JourneysModule } from './journeys/journeys.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { StationsModule } from './stations/stations.module';
       }),
     }),
     StationsModule,
+    JourneysModule,
   ],
   controllers: [AppController],
   providers: [AppService],

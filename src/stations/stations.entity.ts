@@ -12,7 +12,7 @@ export class Station {
     name: 'station_name',
     comment: 'Name of the station',
   })
-  stationName: string;
+  stationName?: string;
 
   @Column({
     type: 'varchar',
@@ -21,7 +21,7 @@ export class Station {
     name: 'station_address',
     comment: 'Address of the station',
   })
-  stationAddress: string;
+  stationAddress?: string;
 
   @Column({
     type: 'varchar',
@@ -30,7 +30,7 @@ export class Station {
     name: 'coordinate_x',
     comment: 'X coordinate of the station',
   })
-  coordinateX: string;
+  coordinateX?: string;
 
   @Column({
     type: 'varchar',
@@ -39,5 +39,5 @@ export class Station {
     name: 'coordinate_y',
     comment: 'Y coordinate of the station',
   })
-  coordinateY: string;
+  coordinateY?: string;
 }

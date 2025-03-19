@@ -1,14 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Station } from './stations.entity';
 import { Repository, Like } from 'typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class StationService {
   constructor(
     @InjectRepository(Station)
     private stationRepository: Repository<Station>,
-  ) {}
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
+  ) {
+    console.log('Cache store:', this.cacheManager.stores);
+  }
 
   async getAllStations(
     skip: number,
@@ -20,26 +26,37 @@ export class StationService {
     y = 'ASC',
     search?: string,
   ): Promise<Station[] | null> {
-    return await this.stationRepository.find({
-      skip: skip * take,
-      take,
-      order: {
-        id: id === 'ASC' ? 'ASC' : 'DESC',
-        stationName: name === 'ASC' ? 'ASC' : 'DESC',
-        stationAddress: address === 'ASC' ? 'ASC' : 'DESC',
-        coordinateX: x === 'ASC' ? 'ASC' : 'DESC',
-        coordinateY: y === 'ASC' ? 'ASC' : 'DESC',
-      },
-      where: search
-        ? [
-            ...(/^[0-9]+$/.test(search) ? [{ id: Number(search) }] : []),
-            { stationName: Like(`%${search}%`) },
-            { stationAddress: Like(`%${search}%`) },
-            { coordinateX: Like(`%${search}%`) },
-            { coordinateY: Like(`%${search}%`) },
-          ]
-        : [],
-    });
+    const cacheKey = `stations:skip=${skip}&take=${take}&id=${id}&name=${name}&address=${address}&x=${x}&y=${y}&search=${search}`;
+
+    const cache: string | null = await this.cacheManager.get(cacheKey);
+
+    if (cache) {
+      return JSON.parse(cache) as Station[] | null;
+    } else {
+      const result = await this.stationRepository.find({
+        skip: skip * take,
+        take,
+        order: {
+          id: id === 'ASC' ? 'ASC' : 'DESC',
+          stationName: name === 'ASC' ? 'ASC' : 'DESC',
+          stationAddress: address === 'ASC' ? 'ASC' : 'DESC',
+          coordinateX: x === 'ASC' ? 'ASC' : 'DESC',
+          coordinateY: y === 'ASC' ? 'ASC' : 'DESC',
+        },
+        where: search
+          ? [
+              ...(/^[0-9]+$/.test(search) ? [{ id: Number(search) }] : []),
+              { stationName: Like(`%${search}%`) },
+              { stationAddress: Like(`%${search}%`) },
+              { coordinateX: Like(`%${search}%`) },
+              { coordinateY: Like(`%${search}%`) },
+            ]
+          : [],
+      });
+      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3600);
+
+      return result;
+    }
   }
 
   async getSingleStation(id: number): Promise<{

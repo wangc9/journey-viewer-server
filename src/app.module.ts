@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -26,6 +25,10 @@ import { Cacheable, CacheableMemory } from 'cacheable';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
+        ssl: {
+          rejectUnauthorized: true,
+          ca: configService.get<string>('DB_SSL_CA'),
+        },
         entities: [__dirname + '/**/*.entity{.js,.ts}'],
       }),
     }),

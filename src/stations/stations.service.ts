@@ -16,6 +16,20 @@ export class StationService {
     console.log('Cache store:', this.cacheManager.stores);
   }
 
+  async getStationCount(): Promise<number> {
+    const cacheKey = 'stations:count';
+    const cache: string | null = await this.cacheManager.get(cacheKey);
+
+    if (cache) {
+      return Number(cache);
+    } else {
+      const count = this.stationRepository.count();
+      await this.cacheManager.set(cacheKey, count, 3600);
+
+      return count;
+    }
+  }
+
   async getAllStations(
     skip: number,
     take: number,

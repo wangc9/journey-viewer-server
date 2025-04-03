@@ -112,6 +112,13 @@ export class StationsController {
     }
   }
 
+  @Get('/count')
+  async getStationCount() {
+    const count = await this.stationService.getStationCount();
+
+    return count;
+  }
+
   @Get('/:id')
   async findSingleStation(@Param('id') id: string) {
     if (!/^[0-9]+$/.test(id)) {

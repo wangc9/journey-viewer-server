@@ -116,7 +116,7 @@ export class StationsController {
   async getStationCount() {
     const count = await this.stationService.getStationCount();
 
-    return count;
+    return { count };
   }
 
   @Get('/:id')

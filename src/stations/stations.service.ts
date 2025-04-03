@@ -12,9 +12,7 @@ export class StationService {
     private stationRepository: Repository<Station>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-  ) {
-    console.log('Cache store:', this.cacheManager.stores);
-  }
+  ) {}
 
   async getStationCount(): Promise<number> {
     const cacheKey = 'stations:count';
@@ -23,7 +21,7 @@ export class StationService {
     if (cache) {
       return Number(cache);
     } else {
-      const count = this.stationRepository.count();
+      const count = await this.stationRepository.count();
       await this.cacheManager.set(cacheKey, count, 3600);
 
       return count;

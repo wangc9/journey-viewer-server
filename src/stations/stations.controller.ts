@@ -26,7 +26,7 @@ export class StationsController {
         path: '/stations',
       };
     }
-    if (!/^[0-9]+$/.test(take)) {
+    if (take && !/^[0-9]+$/.test(take)) {
       return {
         status: 400,
         error: 'Bad Request',
@@ -89,7 +89,7 @@ export class StationsController {
 
     const stations = await this.stationService.getAllStations(
       Number(skip),
-      Number(take),
+      take ? Number(take) : -1,
       id,
       name,
       address,

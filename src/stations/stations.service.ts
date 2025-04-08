@@ -47,7 +47,7 @@ export class StationService {
     } else {
       const result = await this.stationRepository.find({
         skip: skip * take,
-        take,
+        take: take === -1 ? undefined : take,
         order: {
           id: id === 'ASC' ? 'ASC' : 'DESC',
           stationName: name === 'ASC' ? 'ASC' : 'DESC',
@@ -130,5 +130,63 @@ export class StationService {
       `,
     );
     return station;
+  }
+
+  async getJourneyCountByMonth(
+    month?: string,
+    stationId?: string,
+  ): Promise<{
+    month: Date;
+    station_id: string;
+    departure_count: number;
+    arrival_count: number;
+  } | null> {
+    let where = '';
+    if (month) {
+      where += `WHERE month = '${month}'`;
+    }
+    if (stationId) {
+      where += where
+        ? ` AND station_id = ${stationId}`
+        : ` WHERE station_id = ${stationId}`;
+    }
+    const result: {
+      month: Date;
+      station_id: string;
+      departure_count: number;
+      arrival_count: number;
+    } | null = await this.stationRepository.manager.query(
+      `
+        SELECT 
+            month,
+            station_id,
+            SUM(departure_count) AS departure_count,
+            SUM(arrival_count) AS arrival_count
+        FROM (
+            SELECT 
+                DATE_TRUNC('month', departure_date_time) AS month,
+                departure_station_id AS station_id,
+                COUNT(*) AS departure_count,
+                0 AS arrival_count
+            FROM Journey
+            GROUP BY month, station_id
+
+            UNION ALL
+
+            SELECT 
+                DATE_TRUNC('month', return_date_time) AS month,
+                return_station_id AS station_id,
+                0 AS departure_count,
+                COUNT(*) AS arrival_count
+            FROM Journey
+            GROUP BY month, station_id
+        ) AS combined_counts
+        ${where}
+        GROUP BY month, station_id
+        ORDER BY month, station_id;
+      `,
+    );
+
+    return result;
   }
 }

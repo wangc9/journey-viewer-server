@@ -74,19 +74,19 @@ export class StationService {
   async getSingleStation(id: number): Promise<{
     station_name: string;
     station_address: string;
-    start_count: number;
+    start_count: string;
     return_count: string;
-    start_average: number;
-    return_average: number;
+    start_average: string;
+    return_average: string;
   } | null> {
-    const station: {
+    const station: Array<{
       station_name: string;
       station_address: string;
-      start_count: number;
+      start_count: string;
       return_count: string;
-      start_average: number;
-      return_average: number;
-    } | null = await this.stationRepository.manager.query(
+      start_average: string;
+      return_average: string;
+    }> | null = await this.stationRepository.manager.query(
       `
         SELECT
           s.station_name AS station_name,
@@ -129,7 +129,8 @@ export class StationService {
           s.id = ${id};
       `,
     );
-    return station;
+    if (Array.isArray(station)) return station[0];
+    else return null;
   }
 
   async getJourneyCountByMonth(

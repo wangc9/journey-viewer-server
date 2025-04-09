@@ -31,11 +31,11 @@ export class StationService {
   async getAllStations(
     skip: number,
     take: number,
-    id = 'ASC',
-    name = 'ASC',
-    address = 'ASC',
-    x = 'ASC',
-    y = 'ASC',
+    id?: 'ASC' | 'DESC',
+    name?: 'ASC' | 'DESC',
+    address?: 'ASC' | 'DESC',
+    x?: 'ASC' | 'DESC',
+    y?: 'ASC' | 'DESC',
     search?: string,
   ): Promise<Station[] | null> {
     const cacheKey = `stations:skip=${skip}&take=${take}&id=${id}&name=${name}&address=${address}&x=${x}&y=${y}&search=${search}`;
@@ -49,11 +49,13 @@ export class StationService {
         skip: skip * take,
         take: take === -1 ? undefined : take,
         order: {
-          id: id === 'ASC' ? 'ASC' : 'DESC',
-          stationName: name === 'ASC' ? 'ASC' : 'DESC',
-          stationAddress: address === 'ASC' ? 'ASC' : 'DESC',
-          coordinateX: x === 'ASC' ? 'ASC' : 'DESC',
-          coordinateY: y === 'ASC' ? 'ASC' : 'DESC',
+          id: id === 'ASC' ? 'ASC' : id === 'DESC' ? 'DESC' : undefined,
+          stationName:
+            name === 'ASC' ? 'ASC' : name === 'DESC' ? 'DESC' : undefined,
+          stationAddress:
+            address === 'ASC' ? 'ASC' : address === 'DESC' ? 'DESC' : undefined,
+          coordinateX: x === 'ASC' ? 'ASC' : x === 'DESC' ? 'DESC' : undefined,
+          coordinateY: y === 'ASC' ? 'ASC' : y === 'DESC' ? 'DESC' : undefined,
         },
         where: search
           ? [

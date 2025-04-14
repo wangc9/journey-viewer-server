@@ -1,14 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Journey } from './journeys.entity';
 import { Repository } from 'typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class JourneyService {
   constructor(
     @InjectRepository(Journey)
     private journeyRepository: Repository<Journey>,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
+
+  async getJourneyCount(): Promise<number> {
+    const cacheKey = 'journeys:count';
+    const cache: string | null = await this.cacheManager.get(cacheKey);
+
+    if (cache) {
+      return Number(cache);
+    } else {
+      const count = await this.journeyRepository.count();
+      await this.cacheManager.set(cacheKey, count, 3600);
+
+      return count;
+    }
+  }
 
   async getAllJourneys(
     skip: number,

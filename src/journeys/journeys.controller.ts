@@ -88,6 +88,13 @@ export class JourneysController {
     }
   }
 
+  @Get('/count')
+  async getJourneyCount() {
+    const count = await this.journeyService.getJourneyCount();
+
+    return { count };
+  }
+
   @Get('/:id')
   async findSingleJourney(@Param('id') id: string) {
     if (!/^[0-9]+$/.test(id)) {

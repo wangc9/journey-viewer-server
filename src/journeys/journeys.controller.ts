@@ -12,6 +12,8 @@ export class JourneysController {
     @Query('id') id: string,
     @Query('dTime') dTime: string,
     @Query('rTime') rTime: string,
+    @Query('distance') distance: string,
+    @Query('duration') duration: string,
     @Query('search') search: string,
   ) {
     if (!/^[0-9]+$/.test(skip)) {
@@ -64,6 +66,26 @@ export class JourneysController {
         path: '/journeys',
       };
     }
+    if (distance !== undefined && distance !== 'ASC' && distance !== 'DESC') {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'distance order can be only ASC or DESC',
+        code: 'INVALID_DISTANCE_ORDER',
+        timestamp: new Date().toUTCString(),
+        path: '/journeys',
+      };
+    }
+    if (duration !== undefined && duration !== 'ASC' && duration !== 'DESC') {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'duration order can be only ASC or DESC',
+        code: 'INVALID_DURATION_ORDER',
+        timestamp: new Date().toUTCString(),
+        path: '/journeys',
+      };
+    }
 
     const journeys = await this.journeyService.getAllJourneys(
       Number(skip),
@@ -71,6 +93,8 @@ export class JourneysController {
       id,
       dTime,
       rTime,
+      distance,
+      duration,
       search,
     );
 

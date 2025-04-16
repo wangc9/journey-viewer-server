@@ -33,11 +33,16 @@ import { Cacheable, CacheableMemory } from 'cacheable';
       }),
     }),
     CacheModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
       isGlobal: true,
-      useFactory: async () => {
-        const secondary = new KeyvRedis('redis://localhost:6379', {
-          namespace: 'redis',
-        });
+      useFactory: async (configService: ConfigService) => {
+        const secondary = new KeyvRedis(
+          configService.get<string>('REDIS_URL'),
+          {
+            namespace: 'redis',
+          },
+        );
         return {
           stores: [
             //  Redis Store

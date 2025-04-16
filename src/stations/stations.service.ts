@@ -5,6 +5,10 @@ import { Repository, Like } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 
+type StationWithCount = Station & {
+  journey_count: number;
+};
+
 @Injectable()
 export class StationService {
   constructor(
@@ -191,5 +195,48 @@ export class StationService {
     );
 
     return result;
+  }
+
+  async getPopularDestinations(
+    skip: number,
+    take: number,
+    id: number,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    const cacheKey = `stations:popular_destination?id=${id}&startDate=${startDate}&endDate=${endDate}`;
+
+    const cache: string | null = await this.cacheManager.get(cacheKey);
+
+    if (cache) {
+      return JSON.parse(cache) as StationWithCount[] | null;
+    } else {
+      const result: Array<StationWithCount> | null =
+        await this.stationRepository.manager.query(
+          `
+          SELECT
+            j.return_station_id AS id,
+            dest.station_name AS station_name,
+            dest.station_address AS station_address,
+            dest.coordinate_x AS coordinate_x,
+            dest.coordinate_y AS coordinate_y,
+            COUNT(*) AS journey_count
+          FROM journey j
+          JOIN station dest ON j.return_station_id = dest.id
+          WHERE j.departure_station_id = ${id}
+          AND (
+            (${startDate ? new Date(startDate).toISOString() : null} IS NULL OR j.departure_date_time >= ${startDate ? new Date(startDate).toISOString() : null})
+            AND (${endDate ? new Date(endDate).toISOString() : null} IS NULL OR j.departure_date_time <= ${endDate ? new Date(endDate).toISOString() : null})
+          )
+          GROUP BY j.return_station_id, dest.station_name, dest.station_address, dest.coordinate_x, dest.coordinate_y
+          ORDER BY journey_count DESC
+          LIMIT ${take === -1 ? 'NULL' : take}
+          OFFSET ${skip === -1 ? 'NULL' : skip};
+        `,
+        );
+      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3600);
+
+      return result;
+    }
   }
 }

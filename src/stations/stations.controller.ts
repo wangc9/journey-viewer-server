@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { StationService } from './stations.service';
+import { DateTime } from 'luxon';
 
 @Controller('stations')
 export class StationsController {
@@ -132,6 +134,113 @@ export class StationsController {
       };
     }
     const station = await this.stationService.getSingleStation(Number(id));
+    if (station) {
+      return station;
+    } else {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Id does not exist',
+        code: 'INVALID_STATION_ID',
+        timestamp: new Date().toUTCString(),
+        path: '/stations/:id',
+      };
+    }
+  }
+
+  @Get('/:id/destinations')
+  async getPopularDestinations(
+    @Param('id') id: string,
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    if (!/^[0-9]+$/.test(id)) {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Id must be a number',
+        code: 'INVALID_STATION_ID',
+        timestamp: new Date().toUTCString(),
+        path: '/stations/:id/destinations',
+      };
+    }
+    if (!/^[0-9]+$/.test(skip)) {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Skip must be a number',
+        code: 'INVALID_SKIP',
+        timestamp: new Date().toUTCString(),
+        path: '/stations/:id/destinations',
+      };
+    }
+    if (take && !/^[0-9]+$/.test(take)) {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Take must be a number',
+        code: 'INVALID_TAKE',
+        timestamp: new Date().toUTCString(),
+        path: '/stations/:id/destinations',
+      };
+    }
+    if (startDate !== undefined) {
+      try {
+        const parsedStartDate = DateTime.fromISO(startDate);
+        if (!parsedStartDate.isValid) {
+          return {
+            status: 400,
+            error: 'Bad Request',
+            message: 'startDate is in incorrect format',
+            code: 'INVALID_STARTDATE',
+            timestamp: new Date().toUTCString(),
+            path: '/stations/:id/destinations',
+          };
+        }
+      } catch (e) {
+        return {
+          status: 400,
+          error: 'Bad Request',
+          message: 'startDate is in incorrect format',
+          code: 'INVALID_STARTDATE',
+          timestamp: new Date().toUTCString(),
+          path: '/stations/:id/destinations',
+        };
+      }
+    }
+    if (endDate !== undefined) {
+      try {
+        const parsedEndDate = DateTime.fromISO(endDate);
+        if (!parsedEndDate.isValid) {
+          return {
+            status: 400,
+            error: 'Bad Request',
+            message: 'endDate is in incorrect format',
+            code: 'INVALID_ENDDATE',
+            timestamp: new Date().toUTCString(),
+            path: '/stations/:id/destinations',
+          };
+        }
+      } catch (e) {
+        return {
+          status: 400,
+          error: 'Bad Request',
+          message: 'endDate is in incorrect format',
+          code: 'INVALID_ENDDATE',
+          timestamp: new Date().toUTCString(),
+          path: '/stations/:id/destinations',
+        };
+      }
+    }
+    const station = await this.stationService.getPopularDestinations(
+      skip ? Number(skip) : -1,
+      take ? Number(take) : -1,
+      Number(id),
+      startDate,
+      endDate,
+    );
     if (station) {
       return station;
     } else {

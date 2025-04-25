@@ -8,7 +8,7 @@ import { DataSource } from 'typeorm';
 import { StationsModule } from './stations/stations.module';
 import { JourneysModule } from './journeys/journeys.module';
 import { CacheModule } from '@nestjs/cache-manager';
-import { createKeyv } from '@keyv/redis';
+import KeyvRedis, { Keyv } from '@keyv/redis';
 
 @Module({
   imports: [
@@ -38,7 +38,16 @@ import { createKeyv } from '@keyv/redis';
         return {
           stores: [
             //  Redis Store
-            createKeyv(configService.get<string>('REDIS_URL')),
+            new Keyv(
+              new KeyvRedis({
+                url: configService.get<string>('REDIS_URL'),
+                pingInterval: 60000, // Ping interval (in milliseconds)
+                socket: {
+                  reconnectStrategy: (retries) => Math.min(retries * 50, 2000),
+                  keepAlive: 10000, // Keep-alive timeout (in milliseconds)
+                },
+              }),
+            ),
           ],
         };
       },

@@ -143,13 +143,13 @@ export class StationService {
     stationId: string,
     monthStart?: string,
     monthEnd?: string,
-  ): Promise<StationJourneyCountByMonth | null> {
+  ): Promise<Array<StationJourneyCountByMonth> | null> {
     const cacheKey = `station:${stationId}/journey-count?monthStart=${monthStart}&monthEnd=${monthEnd}`;
 
     const cache: string | null = await this.cacheManager.get(cacheKey);
 
     if (cache) {
-      return JSON.parse(cache) as StationJourneyCountByMonth | null;
+      return JSON.parse(cache) as Array<StationJourneyCountByMonth> | null;
     } else {
       let where = '';
       if (monthStart) {
@@ -165,13 +165,9 @@ export class StationService {
           ? ` AND station_id = ${stationId}`
           : ` WHERE station_id = ${stationId}`;
       }
-      const result: {
-        month: Date;
-        station_id: string;
-        departure_count: number;
-        arrival_count: number;
-      } | null = await this.stationRepository.manager.query(
-        `
+      const result: Array<StationJourneyCountByMonth> | null =
+        await this.stationRepository.manager.query(
+          `
         SELECT 
             month,
             station_id,
@@ -200,7 +196,7 @@ export class StationService {
         GROUP BY month, station_id
         ORDER BY month, station_id;
       `,
-      );
+        );
       await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
 
       return result;

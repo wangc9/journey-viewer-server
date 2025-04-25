@@ -26,7 +26,7 @@ export class StationService {
       return Number(cache);
     } else {
       const count = await this.stationRepository.count();
-      await this.cacheManager.set(cacheKey, count, 3600);
+      await this.cacheManager.set(cacheKey, count, 3.6e8);
 
       return count;
     }
@@ -71,7 +71,7 @@ export class StationService {
             ]
           : [],
       });
-      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3600);
+      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
 
       return result;
     }
@@ -140,30 +140,38 @@ export class StationService {
   }
 
   async getJourneyCountByMonth(
-    month?: string,
-    stationId?: string,
-  ): Promise<{
-    month: Date;
-    station_id: string;
-    departure_count: number;
-    arrival_count: number;
-  } | null> {
-    let where = '';
-    if (month) {
-      where += `WHERE month = '${month}'`;
-    }
-    if (stationId) {
-      where += where
-        ? ` AND station_id = ${stationId}`
-        : ` WHERE station_id = ${stationId}`;
-    }
-    const result: {
-      month: Date;
-      station_id: string;
-      departure_count: number;
-      arrival_count: number;
-    } | null = await this.stationRepository.manager.query(
-      `
+    stationId: string,
+    monthStart?: string,
+    monthEnd?: string,
+  ): Promise<StationJourneyCountByMonth | null> {
+    const cacheKey = `station:${stationId}/journey-count?monthStart=${monthStart}&monthEnd=${monthEnd}`;
+
+    const cache: string | null = await this.cacheManager.get(cacheKey);
+
+    if (cache) {
+      return JSON.parse(cache) as StationJourneyCountByMonth | null;
+    } else {
+      let where = '';
+      if (monthStart) {
+        where += `WHERE month >= '${monthStart}'`;
+      }
+      if (monthEnd) {
+        where += where
+          ? ` AND month <= '${monthEnd}'`
+          : ` WHERE month <= '${monthEnd}'`;
+      }
+      if (stationId) {
+        where += where
+          ? ` AND station_id = ${stationId}`
+          : ` WHERE station_id = ${stationId}`;
+      }
+      const result: {
+        month: Date;
+        station_id: string;
+        departure_count: number;
+        arrival_count: number;
+      } | null = await this.stationRepository.manager.query(
+        `
         SELECT 
             month,
             station_id,
@@ -192,9 +200,11 @@ export class StationService {
         GROUP BY month, station_id
         ORDER BY month, station_id;
       `,
-    );
+      );
+      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
 
-    return result;
+      return result;
+    }
   }
 
   async getPopularDestinations(
@@ -234,7 +244,7 @@ export class StationService {
           OFFSET ${skip === -1 ? 'NULL' : skip};
         `,
         );
-      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3600);
+      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
 
       return result;
     }

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Journey } from './journeys.entity';
+import { Journey } from '../journeys/journeys.entity';
 import { Like, Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -22,7 +22,7 @@ export class JourneyService {
       return Number(cache);
     } else {
       const count = await this.journeyRepository.count();
-      await this.cacheManager.set(cacheKey, count, 3.6e8);
+      await this.cacheManager.set(cacheKey, count, 3600);
 
       return count;
     }
@@ -82,7 +82,7 @@ export class JourneyService {
             ]
           : [],
       });
-      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
+      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3600);
 
       return result;
     }

@@ -148,6 +148,67 @@ export class StationsController {
     }
   }
 
+  @Get('/:id/journey-count')
+  async getJourneyCountByMonth(
+    @Param('id') id: string,
+    @Query('monthStart') monthStart: string,
+    @Query('monthEnd') monthEnd: string,
+  ) {
+    if (!/^[0-9]+$/.test(id)) {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Id must be a number',
+        code: 'INVALID_STATION_ID',
+        timestamp: new Date().toUTCString(),
+        path: '/stations/:id/journey-count',
+      };
+    }
+    if (
+      monthStart !== undefined &&
+      !/^[0-9]{4}-[0-9]{2}-01$/.test(monthStart)
+    ) {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Month start must be in format YYYY-MM',
+        code: 'INVALID_MONTH_START',
+        timestamp: new Date().toUTCString(),
+        path: '/stations/:id/journey-count',
+      };
+    }
+    if (monthEnd !== undefined && !/^[0-9]{4}-[0-9]{2}-01$/.test(monthEnd)) {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Month end must be in format YYYY-MM',
+        code: 'INVALID_MONTH_END',
+        timestamp: new Date().toUTCString(),
+        path: '/stations/:id/journey-count',
+      };
+    }
+    if (
+      monthStart !== undefined &&
+      monthEnd !== undefined &&
+      new Date(monthStart).getTime() > new Date(monthEnd).getTime()
+    ) {
+      return {
+        status: 400,
+        error: 'Bad Request',
+        message: 'Month start must be before month end',
+        code: 'INVALID_MONTH_RANGE',
+        timestamp: new Date().toUTCString(),
+        path: '/stations/:id/journey-count',
+      };
+    }
+
+    return await this.stationService.getJourneyCountByMonth(
+      id,
+      monthStart,
+      monthEnd,
+    );
+  }
+
   @Get('/:id/destinations')
   async getPopularDestinations(
     @Param('id') id: string,

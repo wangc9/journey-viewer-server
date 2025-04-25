@@ -8,9 +8,7 @@ import { DataSource } from 'typeorm';
 import { StationsModule } from './stations/stations.module';
 import { JourneysModule } from './journeys/journeys.module';
 import { CacheModule } from '@nestjs/cache-manager';
-import KeyvRedis from '@keyv/redis';
-import { Keyv } from 'keyv';
-import { Cacheable, CacheableMemory } from 'cacheable';
+import { createKeyv } from '@keyv/redis';
 
 @Module({
   imports: [
@@ -37,22 +35,10 @@ import { Cacheable, CacheableMemory } from 'cacheable';
       inject: [ConfigService],
       isGlobal: true,
       useFactory: async (configService: ConfigService) => {
-        const secondary = new KeyvRedis(
-          configService.get<string>('REDIS_URL'),
-          {
-            namespace: 'redis',
-          },
-        );
         return {
           stores: [
             //  Redis Store
-            new Keyv({
-              store: new Cacheable({ secondary, nonBlocking: true }),
-            }),
-
-            new Keyv({
-              store: new CacheableMemory({ ttl: 60000, lruSize: 5000 }),
-            }),
+            createKeyv(configService.get<string>('REDIS_URL')),
           ],
         };
       },

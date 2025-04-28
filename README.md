@@ -1,6 +1,8 @@
 ## Description
 
-This is the server section of a full-stack project visualising bicycle usage around the Helsinki Metropolitan Area. The data used for this project is owned by **City Bike Finland**. The [dataset](https://opendata.arcgis.com/datasets/726277c507ef4914b0aec3cbcfcbfafc_0.csv) for the city bike stations is provided by [HSL](https://www.hsl.fi/en/hsl) under [this license](https://www.avoindata.fi/data/en/dataset/hsl-n-kaupunkipyoraasemat/resource/a23eef3a-cc40-4608-8aa2-c730d17e8902)
+This is the server section of a full-stack project visualising bicycle usage around the Helsinki Metropolitan Area. The data used for this project is owned by **City Bike Finland**. The [dataset](https://opendata.arcgis.com/datasets/726277c507ef4914b0aec3cbcfcbfafc_0.csv) for the city bike stations is provided by [HSL](https://www.hsl.fi/en/hsl) under [this license](https://www.avoindata.fi/data/en/dataset/hsl-n-kaupunkipyoraasemat/resource/a23eef3a-cc40-4608-8aa2-c730d17e8902).
+
+You can access the live version of this project [here](https://journey-viewer-server.onrender.com). Please note that the live version is hosted on a free tier of Render at the moment, which may result in a delay in response time.
 
 ## Project setup
 

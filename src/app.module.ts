@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/require-await */
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -23,10 +24,14 @@ import KeyvRedis, { Keyv } from '@keyv/redis';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        ssl: {
-          rejectUnauthorized: true,
-          ca: configService.get<string>('DB_SSL_CA'),
-        },
+        ...(configService.get<string>('ENVIRONMENT') === 'PROD'
+          ? {
+              ssl: {
+                rejectUnauthorized: true,
+                ca: configService.get<string>('DB_SSL_CA'),
+              },
+            }
+          : {}),
         entities: [__dirname + '/**/*.entity{.js,.ts}'],
       }),
     }),

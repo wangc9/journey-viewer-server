@@ -89,7 +89,19 @@ export class JourneyService {
   }
 
   async getSingleJourney(id: number): Promise<Journey | null> {
-    return await this.journeyRepository.findOne({ where: { id } });
+    const cacheKey = `journey:${id}`;
+    const cache: string | null = await this.cacheManager.get(cacheKey);
+
+    if (cache) {
+      return JSON.parse(cache) as Journey | null;
+    } else {
+      const result = await this.journeyRepository.findOne({ where: { id } });
+      if (result) {
+        await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
+      }
+
+      return result;
+    }
   }
 
   async getJourneysFromStation(

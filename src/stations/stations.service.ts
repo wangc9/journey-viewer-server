@@ -77,23 +77,16 @@ export class StationService {
     }
   }
 
-  async getSingleStation(id: number): Promise<{
-    station_name: string;
-    station_address: string;
-    start_count: string;
-    return_count: string;
-    start_average: string;
-    return_average: string;
-  } | null> {
-    const station: Array<{
-      station_name: string;
-      station_address: string;
-      start_count: string;
-      return_count: string;
-      start_average: string;
-      return_average: string;
-    }> | null = await this.stationRepository.manager.query(
-      `
+  async getSingleStation(id: number): Promise<SingleStation | null> {
+    const cacheKey = `station:${id}`;
+    const cache: string | null = await this.cacheManager.get(cacheKey);
+
+    if (cache) {
+      return JSON.parse(cache) as SingleStation | null;
+    } else {
+      const station: Array<SingleStation> | null =
+        await this.stationRepository.manager.query(
+          `
         SELECT
           s.station_name AS station_name,
           s.station_address AS station_address,
@@ -134,9 +127,13 @@ export class StationService {
         WHERE
           s.id = ${id};
       `,
-    );
-    if (Array.isArray(station)) return station[0];
-    else return null;
+        );
+      if (Array.isArray(station) && station.length > 0) {
+        const result = station[0];
+        await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
+        return result;
+      } else return null;
+    }
   }
 
   async getJourneyCountByMonth(

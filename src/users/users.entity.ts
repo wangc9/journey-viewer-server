@@ -1,4 +1,4 @@
-import { Station } from 'src/stations/stations.entity';
+import { Station } from '../stations/stations.entity';
 import {
   Column,
   Entity,

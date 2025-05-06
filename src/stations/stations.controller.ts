@@ -171,7 +171,7 @@ export class StationsController {
       return {
         status: 400,
         error: 'Bad Request',
-        message: 'Month start must be in format YYYY-MM',
+        message: 'Month start must be in format YYYY-MM-01',
         code: 'INVALID_MONTH_START',
         timestamp: new Date().toUTCString(),
         path: '/stations/:id/journey-count',
@@ -181,7 +181,7 @@ export class StationsController {
       return {
         status: 400,
         error: 'Bad Request',
-        message: 'Month end must be in format YYYY-MM',
+        message: 'Month end must be in format YYYY-MM-01',
         code: 'INVALID_MONTH_END',
         timestamp: new Date().toUTCString(),
         path: '/stations/:id/journey-count',
@@ -302,7 +302,7 @@ export class StationsController {
       startDate,
       endDate,
     );
-    if (station) {
+    if (station && station.length > 0) {
       return station;
     } else {
       return {
@@ -311,7 +311,7 @@ export class StationsController {
         message: 'Id does not exist',
         code: 'INVALID_STATION_ID',
         timestamp: new Date().toUTCString(),
-        path: '/stations/:id',
+        path: '/stations/:id/destinations',
       };
     }
   }

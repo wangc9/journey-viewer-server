@@ -87,46 +87,75 @@ export class StationService {
       const station: Array<SingleStation> | null =
         await this.stationRepository.manager.query(
           `
-        SELECT
-          s.station_name AS station_name,
-          s.station_address AS station_address,
-          (
+            WITH journey_count AS (
+              SELECT
+                return_station_id,
+                COUNT(*) AS count
+              FROM
+                journey
+              WHERE
+                return_station_id = ${id}
+                AND return_date_time IS NOT NULL
+                AND departure_date_time IS NOT NULL
+                AND duration IS NOT NULL
+                AND ABS(EXTRACT(EPOCH FROM (return_date_time - departure_date_time)) - duration) >= 300
+              GROUP BY
+                return_station_id
+            )
             SELECT
-              COUNT(id)
+              s.station_name AS station_name,
+              s.station_address AS station_address,
+              (
+                SELECT
+                  COUNT(id)
+                FROM
+                  journey
+                WHERE
+                  departure_station_id = ${id}
+              ) AS start_count,
+              (
+                SELECT
+                  COUNT(id)
+                FROM
+                  journey
+                WHERE
+                  return_station_id = ${id}
+              ) AS return_count,
+              (
+                SELECT
+                  AVG(distance)
+                FROM
+                  journey
+                WHERE
+                  departure_station_id = ${id}
+              ) AS start_average,
+              (
+                SELECT
+                  AVG(distance)
+                FROM
+                  journey
+                WHERE
+                  return_station_id = ${id}
+              ) AS return_average,
+              ROUND(
+                COALESCE(jc.count, 0) * 100.0 /
+                NULLIF((
+                  SELECT
+                    COUNT(id)
+                  FROM
+                    journey
+                  WHERE
+                    return_station_id = ${id}
+                ), 0),
+                2
+              ) AS percentage
             FROM
-              journey
+              station s
+            LEFT JOIN
+              journey_count jc ON jc.return_station_id = ${id}
             WHERE
-              departure_station_id = ${id}
-          ) AS start_count,
-          (
-            SELECT
-              COUNT(id)
-            FROM
-              journey
-            WHERE
-              return_station_id = ${id}
-          ) AS return_count,
-          (
-            SELECT
-              AVG(distance)
-            FROM
-              journey
-            WHERE
-              departure_station_id = ${id}
-          ) AS start_average,
-          (
-            SELECT
-              AVG(distance)
-            FROM
-              journey
-            WHERE
-              return_station_id = ${id}
-          ) AS return_average
-        FROM
-          station s
-        WHERE
-          s.id = ${id};
-      `,
+              s.id = ${id};
+          `,
         );
       if (Array.isArray(station) && station.length > 0) {
         const result = station[0];
@@ -237,6 +266,64 @@ export class StationService {
           OFFSET ${skip === -1 ? 'NULL' : skip};
         `,
         );
+      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
+
+      return result;
+    }
+  }
+
+  async getIrregularJourneyPercentage(
+    threshold?: number,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    const cacheKey = `stations:irregular_journey_percentage?threshold=${threshold}&startDate=${startDate}&endDate=${endDate}`;
+    const cache: string | null = await this.cacheManager.get(cacheKey);
+
+    if (cache) {
+      return JSON.parse(cache) as IrregularJourneyPercentage[] | null;
+    } else {
+      const result: Array<IrregularJourneyPercentage> | null =
+        await this.stationRepository.manager.query(
+          `
+            WITH total_returns AS (
+              SELECT
+                return_station_id,
+                COUNT(*) AS total_journeys
+              FROM journey
+              WHERE return_date_time IS NOT NULL
+              ${startDate ? `AND return_date_time >= ${new Date(startDate).toISOString()}` : ''}
+              ${endDate ? `AND return_date_time <= ${new Date(endDate).toISOString()}` : ''}
+              GROUP BY return_station_id
+            ),
+            inconsistent_returns AS (
+              SELECT
+                return_station_id,
+                COUNT(*) AS inconsistent_journeys
+              FROM journey
+              WHERE
+                return_date_time IS NOT NULL
+                AND departure_date_time IS NOT NULL
+                AND duration IS NOT NULL
+                ${startDate ? `AND return_date_time >= ${new Date(startDate).toISOString()}` : ''}
+                ${endDate ? `AND return_date_time <= ${new Date(endDate).toISOString()}` : ''}
+                AND ABS(EXTRACT(EPOCH FROM (return_date_time - departure_date_time)) - duration) > ${threshold || 300}
+              GROUP BY return_station_id
+            )
+            SELECT
+              s.id AS station_id,
+              s.station_name,
+              ROUND(
+                COALESCE(ir.inconsistent_journeys, 0) * 100.0 / tr.total_journeys,
+                2
+              ) AS percentage
+            FROM total_returns tr
+            JOIN station s ON s.id = tr.return_station_id
+            LEFT JOIN inconsistent_returns ir ON ir.return_station_id = tr.return_station_id
+            ORDER BY percentage DESC;
+          `,
+        );
+
       await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
 
       return result;

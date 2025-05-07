@@ -12,4 +12,11 @@ type SingleStation = {
   return_count: string;
   start_average: string;
   return_average: string;
+  percentage: string;
+};
+
+type IrregularJourneyPercentage = {
+  station_id: string;
+  station_name: string;
+  percentage: string;
 };

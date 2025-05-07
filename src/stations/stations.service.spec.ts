@@ -290,6 +290,7 @@ describe('StationService', () => {
       return_count: '20',
       start_average: '71.2',
       return_average: '71.5',
+      percentage: '0.05',
     };
 
     it('should return station from cache if available', async () => {
@@ -650,6 +651,62 @@ describe('StationService', () => {
         cacheTTL,
       );
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('getIrregularJourneyPercentage', () => {
+    const threshold = 1000;
+    const startDate = '2023-01-01';
+    const endDate = '2023-01-31';
+    const cacheTTL = 3.6e8;
+    const mockIrregularJourneyPercentageData: Array<IrregularJourneyPercentage> =
+      [
+        {
+          station_id: '1',
+          station_name: 'Station 1',
+          percentage: '25.00',
+        },
+        {
+          station_id: '2',
+          station_name: 'Station 2',
+          percentage: '50.00',
+        },
+      ];
+    it('should return irregular journey percentage data from cache if available', async () => {
+      const cacheKey = `stations:irregular_journey_percentage?threshold=${threshold}&startDate=${startDate}&endDate=${endDate}`;
+      const cachedData = JSON.stringify(mockIrregularJourneyPercentageData);
+      mockCacheManager.get.mockResolvedValue(cachedData);
+
+      const result = await service.getIrregularJourneyPercentage(
+        threshold,
+        startDate,
+        endDate,
+      );
+      expect(cache.get).toHaveBeenCalledWith(cacheKey);
+      expect(repository.manager.query).not.toHaveBeenCalled();
+      expect(cache.set).not.toHaveBeenCalled();
+      expect(result).toEqual(mockIrregularJourneyPercentageData);
+    });
+    it('should fetch irregular journey percentage data from repository and cache if not available', async () => {
+      const cacheKey = `stations:irregular_journey_percentage?threshold=${threshold}&startDate=${startDate}&endDate=${endDate}`;
+      mockCacheManager.get.mockResolvedValue(null);
+      mockStationRepository.manager.query.mockResolvedValue(
+        mockIrregularJourneyPercentageData,
+      );
+
+      const result = await service.getIrregularJourneyPercentage(
+        threshold,
+        startDate,
+        endDate,
+      );
+      expect(cache.get).toHaveBeenCalledWith(cacheKey);
+      expect(repository.manager.query).toHaveBeenCalled();
+      expect(cache.set).toHaveBeenCalledWith(
+        cacheKey,
+        JSON.stringify(mockIrregularJourneyPercentageData),
+        cacheTTL,
+      );
+      expect(result).toEqual(mockIrregularJourneyPercentageData);
     });
   });
 });

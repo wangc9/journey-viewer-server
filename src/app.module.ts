@@ -10,6 +10,7 @@ import { StationsModule } from './stations/stations.module';
 import { JourneysModule } from './journeys/journeys.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import KeyvRedis, { Keyv } from '@keyv/redis';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import KeyvRedis, { Keyv } from '@keyv/redis';
     }),
     StationsModule,
     JourneysModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

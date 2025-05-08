@@ -2,7 +2,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Post,
+  Request,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { LocalAuthGuard } from './local-auth.guard';
 import { AuthService } from './auth.service';
 import { User } from 'src/users/users.entity';
@@ -16,6 +24,7 @@ export class AuthController {
     return this.authService.login(req.user as User);
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Post('/register')
   async register(
     @Body('email') email: string,

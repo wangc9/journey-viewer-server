@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { Exclude } from 'class-transformer';
 import { Station } from '../stations/stations.entity';
 import {
   Column,
@@ -19,6 +21,7 @@ export class User {
   })
   email: string;
 
+  @Exclude()
   @Column({
     type: 'text',
     comment: 'User password',

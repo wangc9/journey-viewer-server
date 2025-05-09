@@ -8,20 +8,38 @@ import {
   Controller,
   Post,
   Request,
+  Res,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { LocalAuthGuard } from './local-auth.guard';
 import { AuthService } from './auth.service';
 import { User } from 'src/users/users.entity';
+import { Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
   @UseGuards(LocalAuthGuard)
   @Post('/login')
-  async login(@Request() req) {
-    return this.authService.login(req.user as User);
+  async login(@Request() req, @Res({ passthrough: true }) response: Response) {
+    const domain = this.configService.get<string>('SERVER_DOMAIN');
+    const environment = this.configService.get<string>('ENVIRONMENT');
+    const result = await this.authService.login(req.user as User);
+    response.cookie('access_token', result.access_token, {
+      domain,
+      sameSite: environment === 'PROD' ? 'none' : 'lax',
+      path: '/',
+      secure: environment === 'PROD',
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 5,
+    });
+
+    return result.user;
   }
 
   @UseInterceptors(ClassSerializerInterceptor)

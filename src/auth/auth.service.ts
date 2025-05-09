@@ -34,6 +34,7 @@ export class AuthService {
       admin: user.email === this.configService.get<string>('ADMIN_EMAIL'),
     };
     return {
+      user,
       access_token: this.jwtService.sign(payload),
     };
   }

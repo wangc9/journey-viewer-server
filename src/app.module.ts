@@ -25,7 +25,7 @@ import { AuthModule } from './auth/auth.module';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        ...(configService.get<string>('ENVIRONMENT') === 'PROD'
+        ...(configService.get<string>('ENVIRONMENT') !== 'DEV'
           ? {
               ssl: {
                 rejectUnauthorized: true,

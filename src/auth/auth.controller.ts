@@ -32,7 +32,7 @@ export class AuthController {
     const result = await this.authService.login(req.user as User);
     response.cookie('access_token', result.access_token, {
       domain,
-      sameSite: environment === 'PROD' ? 'none' : 'lax',
+      sameSite: environment === 'TEST' ? 'lax' : 'none',
       path: '/',
       secure: environment === 'PROD',
       httpOnly: true,

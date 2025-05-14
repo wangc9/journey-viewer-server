@@ -71,7 +71,7 @@ export class StationService {
             ]
           : [],
       });
-      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
+      await this.cacheManager.set(cacheKey, JSON.stringify(result));
 
       return result;
     }
@@ -159,7 +159,7 @@ export class StationService {
         );
       if (Array.isArray(station) && station.length > 0) {
         const result = station[0];
-        await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
+        await this.cacheManager.set(cacheKey, JSON.stringify(result));
         return result;
       } else return null;
     }
@@ -223,7 +223,7 @@ export class StationService {
         ORDER BY month, station_id;
       `,
         );
-      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
+      await this.cacheManager.set(cacheKey, JSON.stringify(result));
 
       return result;
     }
@@ -266,7 +266,7 @@ export class StationService {
           OFFSET ${skip === -1 ? 'NULL' : skip};
         `,
         );
-      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
+      await this.cacheManager.set(cacheKey, JSON.stringify(result));
 
       return result;
     }
@@ -324,7 +324,7 @@ export class StationService {
           `,
         );
 
-      await this.cacheManager.set(cacheKey, JSON.stringify(result), 3.6e8);
+      await this.cacheManager.set(cacheKey, JSON.stringify(result));
 
       return result;
     }

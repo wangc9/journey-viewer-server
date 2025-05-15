@@ -15,6 +15,7 @@ async function bootstrap() {
     .setTitle('Journey analyser API')
     .setDescription('API for Journey analyser')
     .setVersion('1.0')
+    .addCookieAuth('access_token')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

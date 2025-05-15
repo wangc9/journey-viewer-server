@@ -1,11 +1,13 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { UserService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { ApiCookieAuth } from '@nestjs/swagger';
 
 @Controller('users')
 export class UsersController {
   constructor(private userService: UserService) {}
 
+  @ApiCookieAuth()
   @UseGuards(JwtAuthGuard)
   @Get()
   async findAllUsers() {

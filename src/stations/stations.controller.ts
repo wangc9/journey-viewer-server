@@ -2,12 +2,16 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { StationService } from './stations.service';
 import { DateTime } from 'luxon';
+import { ApiOkResponse } from '@nestjs/swagger';
+import { Station } from './stations.entity';
+import { SingleStation } from './stations.dto';
 
 @Controller('stations')
 export class StationsController {
   constructor(private readonly stationService: StationService) {}
 
   @Get()
+  @ApiOkResponse({ isArray: true, type: Station })
   async findAllStations(
     @Query('skip') skip: string,
     @Query('take') take: string,
@@ -122,6 +126,7 @@ export class StationsController {
   }
 
   @Get('/:id')
+  @ApiOkResponse({ isArray: true, type: SingleStation })
   async findSingleStation(@Param('id') id: string) {
     if (!/^[0-9]+$/.test(id)) {
       return {

@@ -4,6 +4,7 @@ import { Station } from './stations.entity';
 import { Repository, Like } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { SingleStation } from './stations.dto';
 
 type StationWithCount = Station & {
   journey_count: number;

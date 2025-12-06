@@ -28,7 +28,7 @@ import { AuthModule } from './auth/auth.module';
         ...(configService.get<string>('ENVIRONMENT') !== 'DEV'
           ? {
               ssl: {
-                rejectUnauthorized: true,
+                rejectUnauthorized: false,
                 ca: configService.get<string>('DB_SSL_CA'),
               },
             }
